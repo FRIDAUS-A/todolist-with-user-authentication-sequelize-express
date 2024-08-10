@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+CREATE TABLE Todos (
+	sn AUTOINCREMENT,
+
+)
