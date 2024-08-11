@@ -85,7 +85,7 @@ const deleteTask = async (req, res) => {
 	const { customer_id } = req.customer
 	const { todo_id: todo_id } = req.params
 
-	task = await Task.update({
+	task = await Todo.update({
 		is_deleted: true
 	}, {
 		where: {
@@ -102,7 +102,7 @@ const deleteTask = async (req, res) => {
 const getAllDeletedTasks = async (req, res) => {
 	const { customer_id } = req.customer
 
-	const deletedTasks = await Task.findAll({
+	const deletedTasks = await Todo.findAll({
 		where: {
 			customer_id: customer_id,
 			is_deleted: true
@@ -120,7 +120,7 @@ const recoverDeletedTask = async (req, res) => {
 	const { customer_id } = req.customer
 	const { todo_id: todo_id } = req.params
 
-	const task = await Task.update({
+	const task = await Todo.update({
 		is_deleted: false
 	}, {
 		where: {
@@ -138,7 +138,7 @@ const recoverDeletedTask = async (req, res) => {
 
 
 const recoverAllDeletedTasks = async (req, res) => {
-	await Task.update({
+	await Todo.update({
 		is_deleted: false,
 		where: {
 			customer_id: customer_id
@@ -152,6 +152,38 @@ const recoverAllDeletedTasks = async (req, res) => {
 }
 
 
+const deleteTaskFinally = async (req, res) => {
+	const { customer_id } = req.customer
+	const { todo_id: todo_id } = req.params
+
+	await Todo.destroy({
+		where: { 
+			customer_id: customer_id,
+			todo_id: todo_id,
+			is_delete: true
+		}
+	})
+	res.status(StatusCodes.OK).json({
+		status: "success",
+		message: "Task is Finally deleted in the Recycle Bin"
+	})
+}
+
+
+const deleteAllFinally = async (req, res) => {
+	const { customer_id } = req.customer
+
+	await Todo.destroy({
+		where: { 
+			customer_id: customer_id,
+			is_delete: true
+		}
+	})
+	res.status(StatusCodes.OK).json({
+		status: "success",
+		message: "All Tasks in the Recycle BIN are Deleted Finally"
+	})
+}
 
 module.exports = {
 	createTask,
@@ -161,5 +193,7 @@ module.exports = {
 	deleteTask,
 	getAllDeletedTasks,
 	recoverDeletedTask,
-	recoverAllDeletedTasks
+	recoverAllDeletedTasks,
+	deleteTaskFinally,
+	deleteAllFinally
 }
