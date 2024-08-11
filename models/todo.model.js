@@ -1,4 +1,5 @@
-const { Sequelite, DataTypes } = require('sequelize')
+const { Sequelize, DataTypes } = require('sequelize')
+const sequelize = require('../config/sequelize')
 
 
 const Todo =  sequelize.define(
@@ -7,7 +8,7 @@ const Todo =  sequelize.define(
 		todo_id: {
 			type: DataTypes.STRING,
 			allowNull: false,
-			unique: true
+			primaryKey: true
 		},
 		customer_id: {
 			type: DataTypes.STRING,
@@ -37,11 +38,13 @@ const Todo =  sequelize.define(
 		},
 		created_at: {
 			type: DataTypes.DATE,
-			default: DataTypes.NOW
+			allowNull: false,
+			defaultValue: DataTypes.NOW
 		},
 		updated_at: {
 			type: DataTypes.DATE,
-			default: DataTypes.NOW
+			allowNull: false,
+			defaultValue: DataTypes.NOW
 		}
 	},
 	{
@@ -49,4 +52,4 @@ const Todo =  sequelize.define(
 	}
 )
 
-module.exports = Todo
+module.exports = Todo 

@@ -16,12 +16,14 @@ const errorHandlerMiddleware = require('./middleware/error-handler')
 
 // router
 routerCustomers = require('./routes/customer.route')
+routerTodos = require('./routes/todo.route')
 
 // routes
 app.get('/', (req, res) => {
 	res.send('<h1>Working fine</h1>')
 })
 app.use('/api/v1/customers',routerCustomers)
+app.use('/api/v1/todos', routerTodos)
 
 app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)

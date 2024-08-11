@@ -2,7 +2,7 @@ const  { Customer }  = require('../models/customer.model')
 const {v4: uuidv4} = require('uuid')
 const { generateOtp, hashPassword }= require('../utils/index')
 
-const { createCustomerValidation } = require('../validation/customer.validation')
+const  createCustomerValidation = require('../validation/customer.validation')
 const Otp = require('../models/otp.model')
 const sgMail = require('@sendgrid/mail');
 const bcrypt = require('bcryptjs')
@@ -94,8 +94,6 @@ const verifyEmail = async(req, res) => {
 			email:email
 		}
 	})
-	console.log(customer)
-	console.log(customer.dataValues)
 
 	if (customer) {
 		const checkIfOtpExist = await Otp.findOne({
@@ -144,6 +142,10 @@ const loginCustomer = async (req, res, next) => {
 	const customer = await Customer.findOne({
 		where: {email: email}
 	})
+	// check if email is verified
+	if (!customer.is_verified) {
+		throw new BadRequestError("Verify Your Email")
+	}
 	const storedHash = customer.hash
 	checkPassword = await bcrypt.compare(password, storedHash)
 	if (!checkPassword) {
@@ -161,7 +163,9 @@ const loginCustomer = async (req, res, next) => {
 const updateCustomer = async (req, res) => {
 	const { customer_id } = req.customer
 
-	await Customer.update(req.body, {
+	let payLoad = req.body
+	payLoad.updated_at = Date.now()
+	await Customer.update(payLoad, {
 		where: {
 			customer_id: customer_id
 		}
@@ -171,7 +175,7 @@ const updateCustomer = async (req, res) => {
 			customer_id: customer_id
 		}
 	})
-	return res.status(201).json({ customer: customer })
+	return res.status(StatusCodes.CREATED).json({ customer: customer })
 }
 
 
