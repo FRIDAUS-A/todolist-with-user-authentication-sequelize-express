@@ -1,5 +1,5 @@
 const joi = require('joi')
-const { Model } = require('sequelize')
+//const { Model } = require('sequelize')
 
 
 const createCustomerValidation = (data) => {

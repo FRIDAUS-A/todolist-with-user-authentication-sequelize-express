@@ -1,11 +1,15 @@
-const  Customer  = require('../models/customer.model')
+const  { Customer }  = require('../models/customer.model')
 const {v4: uuidv4} = require('uuid')
 const { generateOtp, hashPassword }= require('../utils/index')
 
-const createCustomerValidation = require('../validation/customer.validation')
+const { createCustomerValidation } = require('../validation/customer.validation')
 const Otp = require('../models/otp.model')
 const sgMail = require('@sendgrid/mail');
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const { BadRequestError } = require('../errors')
+const { StatusCodes } = require('http-status-codes')
+const { UnauthenticatedError } = require('../errors')
 
 
 const createCustomer = async (req, res) => {
@@ -28,7 +32,7 @@ const createCustomer = async (req, res) => {
 
 	console.log(checkIfEmailExist)
 	if(checkIfEmailExist) {
-		throw Error('A customer with the Email Exists')
+		throw new BadRequestError('A customer with the Email Exists')
 	}
 	const [hash, salt] = await hashPassword(password)
 
@@ -79,14 +83,19 @@ const resendOtp = async (req, res) => {
 		message: 'A new OTP has been sent to you'
 	})
 }
+
+
 const verifyEmail = async(req, res) => {
 	const { email, otp } = req.query
 	
+	console.log("where the error is")
 	customer = await Customer.findOne({
 		where: {
 			email:email
 		}
 	})
+	console.log(customer)
+	console.log(customer.dataValues)
 
 	if (customer) {
 		const checkIfOtpExist = await Otp.findOne({
@@ -125,12 +134,33 @@ res.status(200).json({
 })
 }
 
-const loginCustomer = async (req, res) => {
-	
+const loginCustomer = async (req, res, next) => {
+	const { email, password } = req.body
+
+	if (!email || !password) {
+		throw new BadRequestError("Provide Email and Password")
+	}
+
+	const customer = await Customer.findOne({
+		where: {email: email}
+	})
+	const storedHash = customer.hash
+	checkPassword = await bcrypt.compare(password, storedHash)
+	if (!checkPassword) {
+		throw new UnauthenticatedError("invalid Detail")
+	} 
+	const customer_id = customer.customer_id
+	token = jwt.sign({customer_id}, process.env.JWT_KEY, {expiresIn: '1d'})
+
+	res.status(StatusCodes.ACCEPTED).json({
+		status: "success",
+		message: "Login Successful",
+		token: token
+	})
 }
 const updateCustomer = async (req, res) => {
-	const {id: customer_id} = req.params
-	
+	const { customer_id } = req.customer
+
 	await Customer.update(req.body, {
 		where: {
 			customer_id: customer_id
